@@ -19,7 +19,8 @@ A personal finance dashboard that visualizes spending data from Parquet files st
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `S3_BUCKET` | Yes | - | S3 bucket name containing transaction data |
+| `S3_BUCKET` | No | `karet-data` | S3 bucket name containing transaction data |
+| `S3_FORCE_PATH_STYLE` | No | `false` | Forces client to use URL path to access buckets rather than subdomains |
 | `S3_PREFIX` | No | `clean/` | Prefix path to Parquet files in the bucket |
 | `AWS_REGION` | No | `us-east-1` | AWS region for S3 access |
 
@@ -29,7 +30,7 @@ A personal finance dashboard that visualizes spending data from Parquet files st
 # Install dependencies
 npm install
 
-# Set required environment variables
+# Set environment variables
 export S3_BUCKET=your-bucket-name
 
 # Run development server
@@ -46,10 +47,4 @@ npm run build
 
 # Start production server
 npm start
-```
-
-## Testing
-
-```bash
-npm test
 ```

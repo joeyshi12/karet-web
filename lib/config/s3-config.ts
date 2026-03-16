@@ -14,7 +14,8 @@ export const defaultS3Config: S3Config = {
   prefix: process.env.S3_PREFIX || 'clean/',
   region: process.env.AWS_REGION || 'us-east-1',
   endpoint: process.env.S3_ENDPOINT,
-  forcePathStyle: process.env.S3_FORCE_PATH_STYLE === 'true',
+  forcePathStyle: process.env.S3_FORCE_PATH_STYLE === undefined
+      || process.env.S3_FORCE_PATH_STYLE === 'true',
 };
 
 /** Validates that the S3 configuration has required values. */
