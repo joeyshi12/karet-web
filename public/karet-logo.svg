@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="carrot-body" x1="32" y1="16" x2="32" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="50%" stop-color="#FFA500"/>
+      <stop offset="100%" stop-color="#E88A00"/>
+    </linearGradient>
+    <linearGradient id="carrot-shine" x1="28" y1="20" x2="34" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFF3B0" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#FFF3B0" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="32" y1="2" x2="32" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#66BB6A"/>
+      <stop offset="100%" stop-color="#388E3C"/>
+    </linearGradient>
+  </defs>
+  <!-- Carrot body - narrower top, gradual taper -->
+  <path d="M28 18 C26 19, 23 24, 22 30 Q21 44, 32 60 Q43 44, 42 30 C41 24, 38 19, 36 18 Z" fill="url(#carrot-body)"/>
+  <!-- Shine highlight -->
+  <path d="M29 22 C28 28, 27 36, 30 48 C31 36, 30 28, 30 22 Z" fill="url(#carrot-shine)"/>
+  <!-- Horizontal detail lines - straight/slight downward curve -->
+  <path d="M25 30 Q32 29, 39 30" stroke="#E88A00" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <path d="M24 36 Q32 35, 40 36" stroke="#E88A00" stroke-width="0.8" fill="none" opacity="0.4"/>
+  <path d="M27 43 Q32 42, 37 43" stroke="#E88A00" stroke-width="0.8" fill="none" opacity="0.3"/>
+  <!-- Leaves - wide, no stroke, growing from crown -->
+  <path d="M30 19 C26 14, 16 8, 8 3 C10 6, 18 12, 24 16 C18 10, 12 7, 8 6 C14 10, 24 16, 29 19 Z" fill="url(#leaf)"/>
+  <path d="M29 19 C28 10, 29 4, 32 0 C35 4, 36 10, 35 19 Z" fill="url(#leaf)"/>
+  <path d="M34 19 C38 14, 48 8, 56 3 C54 6, 46 12, 40 16 C46 10, 52 7, 56 6 C50 10, 40 16, 35 19 Z" fill="url(#leaf)"/>
+  <!-- Sparkle accents -->
+  <circle cx="18" cy="12" r="1.2" fill="#FFD700" opacity="0.8"/>
+  <circle cx="46" cy="10" r="0.9" fill="#FFD700" opacity="0.6"/>
+  <circle cx="50" cy="22" r="1" fill="#FFD700" opacity="0.7"/>
+</svg>
