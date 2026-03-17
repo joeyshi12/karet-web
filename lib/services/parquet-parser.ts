@@ -10,7 +10,7 @@ export interface ParquetParser {
 /** Converts all BigInt values in an object to Numbers recursively. */
 export function convertBigIntsToNumbers(obj: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
-  
+
   for (const [key, value] of Object.entries(obj)) {
     if (value === null || value === undefined) {
       result[key] = value;
@@ -32,7 +32,7 @@ export function convertBigIntsToNumbers(obj: Record<string, unknown>): Record<st
       result[key] = value;
     }
   }
-  
+
   return result;
 }
 
@@ -130,7 +130,7 @@ export async function parse(buffer: Buffer): Promise<Transaction[]> {
     const arrayBuffer = buffer.buffer.slice(
       buffer.byteOffset,
       buffer.byteOffset + buffer.byteLength
-    );
+    ) as ArrayBuffer;
 
     // Use hyparquet with compressors (supports ZSTD, gzip, brotli, etc.)
     const rows = await parquetReadObjects({
