@@ -41,7 +41,7 @@ export default function Dashboard() {
         setError(null);
 
         const response = await fetch('/api/transactions');
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch transactions: ${response.statusText}`);
         }
@@ -164,7 +164,7 @@ export default function Dashboard() {
         {/* Category Chart */}
         <div className="bg-white rounded-lg p-3 shadow-sm min-w-0 overflow-hidden sm:p-3.5 lg:col-span-1 lg:p-4">
           <h2 className="text-[0.8125rem] font-semibold text-leafy-green mb-2 lg:text-sm">By Category</h2>
-          <div className="relative w-full max-w-[180px] mx-auto sm:max-w-[200px] lg:max-w-[220px]">
+          <div className="relative w-full max-w-[240px] mx-auto sm:max-w-[260px] lg:max-w-[280px]">
             <CategoryChart transactions={spendingTransactions} />
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function Dashboard() {
         {/* Monthly Trend Chart */}
         <div className="bg-white rounded-lg p-3 shadow-sm min-w-0 overflow-hidden sm:p-3.5 lg:col-span-2 lg:p-4">
           <h2 className="text-[0.8125rem] font-semibold text-leafy-green mb-2 lg:text-sm">Monthly Trend</h2>
-          <div className="relative w-full h-[160px] sm:h-[180px] lg:h-[200px] xl:h-[220px]">
+          <div className="relative w-full h-[220px] sm:h-[240px] lg:h-[260px] xl:h-[280px]">
             <MonthlyTrendChart transactions={spendingTransactions} />
           </div>
         </div>

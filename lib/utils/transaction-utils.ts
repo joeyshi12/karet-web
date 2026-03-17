@@ -2,18 +2,18 @@ import { Transaction } from '../types/transaction';
 
 /** Filters transactions to only include spending (positive amounts, excluding Payment category). */
 export function filterSpendingOnly(transactions: Transaction[]): Transaction[] {
-  return transactions.filter((t) => t.amount > 0 && t.category !== 'Payment');
+  return transactions.filter((t) => t.amount > 0 && t.category !== 'PAYMENT');
 }
 
 /** Filters transactions to only include payments (Payment category). */
 export function filterPaymentsOnly(transactions: Transaction[]): Transaction[] {
-  return transactions.filter((t) => t.category === 'Payment');
+  return transactions.filter((t) => t.category === 'PAYMENT');
 }
 
 /** Calculates total payments (sum of absolute payment amounts, deduplicated). */
 export function calculateTotalPayments(transactions: Transaction[]): number {
   // Only count the negative side (Visa) to avoid double-counting
-  const visaPayments = transactions.filter((t) => t.category === 'Payment' && t.amount < 0);
+  const visaPayments = transactions.filter((t) => t.category === 'PAYMENT' && t.amount < 0);
   return Math.abs(visaPayments.reduce((total, t) => total + t.amount, 0));
 }
 
@@ -195,20 +195,22 @@ export function fuzzySearchTransactions(
   query: string
 ): Transaction[] {
   const trimmedQuery = query.trim().toLowerCase();
-  
+
   if (trimmedQuery === '') {
     return transactions;
   }
-  
+
   return transactions.filter((transaction) => {
     const description = transaction.description.toLowerCase();
     const merchant = (transaction.merchant ?? '').toLowerCase();
     const category = (transaction.category ?? '').toLowerCase();
-    
+    const account_id = (transaction.account_id ?? '').toLowerCase();
+
     return (
       description.includes(trimmedQuery) ||
       merchant.includes(trimmedQuery) ||
-      category.includes(trimmedQuery)
+      category.includes(trimmedQuery) ||
+      account_id.includes(trimmedQuery)
     );
   });
 }

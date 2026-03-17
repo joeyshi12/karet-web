@@ -113,14 +113,14 @@ export function MonthlyTrendChart({ transactions }: MonthlyTrendChartProps) {
 
   if (transactions.length === 0 || displayMonths.length === 0) {
     return (
-      <div className="flex items-center justify-center text-gray-500" style={{ height: '180px' }}>
+      <div className="flex items-center justify-center text-gray-500" style={{ height: '240px' }}>
         No monthly data available
       </div>
     );
   }
 
   return (
-    <div className="w-full cursor-pointer" style={{ height: '180px' }}>
+    <div className="w-full cursor-pointer" style={{ height: '260px' }}>
       <Bar data={data} options={options} />
     </div>
   );
