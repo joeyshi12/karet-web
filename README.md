@@ -4,7 +4,7 @@
 
 # karet-web
 
-A self-hostable personal finance dashboard. Visualizes spending data from Parquet files in S3.
+A self-hostable personal finance dashboard that visualizes spending data from Parquet files in S3.
 
 ## Quick start
 
@@ -23,4 +23,4 @@ Runs RustFS (S3-compatible storage), [karet-worker](https://github.com/joeyshi12
 docker compose up -d
 ```
 
-All configuration is in [`docker-compose.yaml`](docker-compose.yaml).
+All configuration is contained in [`docker-compose.yaml`](docker-compose.yaml).
