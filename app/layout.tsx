@@ -17,7 +17,6 @@ export const metadata: Metadata = {
   title: "Karet Dashboard - Personal Finance Companion",
   description: "A playful personal finance dashboard with bunny/carrot theme. Track your spending, visualize trends, and manage your finances with joy.",
   keywords: ["personal finance", "spending tracker", "budget", "dashboard", "karet"],
-  icons: { icon: "/karet-logo.svg" },
 };
 
 export default function RootLayout({

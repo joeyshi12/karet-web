@@ -45,6 +45,23 @@ export function filterByDateRange(
   });
 }
 
+/**
+ * Whether a transaction matches the category query param from the URL.
+ * The chart uses the label "Uncategorized" for null/empty category; those rows
+ * store `category: null`, so we must not compare with strict equality to the string.
+ */
+export function transactionMatchesCategoryFilter(
+  transaction: Transaction,
+  categoryFilter: string
+): boolean {
+  if (categoryFilter === 'Uncategorized') {
+    const c = transaction.category;
+    if (c == null || c.trim() === '') return true;
+    return c === 'Uncategorized';
+  }
+  return transaction.category === categoryFilter;
+}
+
 /** Aggregates transactions by category. Returns Map of category name to total amount. */
 export function aggregateByCategory(
   transactions: Transaction[]

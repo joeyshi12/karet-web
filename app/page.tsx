@@ -58,6 +58,15 @@ export default function Dashboard() {
         }));
 
         setTransactions(parsedTransactions);
+
+        if (parsedTransactions.length > 0) {
+          const dates = parsedTransactions.map((t) => t.date.getTime());
+          setFilterState((prev) => ({
+            ...prev,
+            startDate: prev.startDate ?? new Date(Math.min(...dates)),
+            endDate: prev.endDate ?? new Date(Math.max(...dates)),
+          }));
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred while fetching transactions');
       } finally {
@@ -88,6 +97,12 @@ export default function Dashboard() {
   const handleAccountChange = useCallback((accountId: string | null) => {
     setFilterState((prev) => ({ ...prev, accountId }));
   }, []);
+
+  const defaultDateRange = useMemo(() => {
+    if (transactions.length === 0) return { start: null, end: null };
+    const dates = transactions.map((t) => t.date.getTime());
+    return { start: new Date(Math.min(...dates)), end: new Date(Math.max(...dates)) };
+  }, [transactions]);
 
   const handleDateRangeChange = useCallback((startDate: Date | null, endDate: Date | null) => {
     setFilterState((prev) => ({ ...prev, startDate, endDate }));
@@ -150,6 +165,8 @@ export default function Dashboard() {
         <DateRangeFilter
           startDate={filterState.startDate}
           endDate={filterState.endDate}
+          defaultStartDate={defaultDateRange.start}
+          defaultEndDate={defaultDateRange.end}
           onDateRangeChange={handleDateRangeChange}
         />
       </div>

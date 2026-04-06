@@ -5,6 +5,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, TooltipItem, ActiveEleme
 import { Doughnut } from 'react-chartjs-2';
 import { Transaction } from '@/lib/types/transaction';
 import { aggregateByCategory } from '@/lib/utils/transaction-utils';
+import { formatCategoryDisplayName } from '@/lib/utils/category-display';
 import { THEME_COLORS } from '@/lib/config/theme';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -36,12 +37,12 @@ export function CategoryChart({ transactions }: CategoryChartProps) {
     if (elements.length > 0) {
       const index = elements[0].index;
       const category = categories[index];
-      router.push(`/transactions?category=${encodeURIComponent(category)}`);
+      router.push(`/transactions?category=${encodeURIComponent(category)}&spending=true`);
     }
   };
 
   const data = {
-    labels: categories,
+    labels: categories.map(formatCategoryDisplayName),
     datasets: [
       {
         data: amounts,

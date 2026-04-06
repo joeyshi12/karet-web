@@ -9,6 +9,7 @@ import {
   findTopCategory,
   formatCurrency,
 } from '@/lib/utils/transaction-utils';
+import { formatCategoryDisplayName } from '@/lib/utils/category-display';
 
 interface SpendingSummaryProps {
   transactions: Transaction[];
@@ -22,7 +23,7 @@ export function SpendingSummary({ transactions }: SpendingSummaryProps) {
   const totalSpendingFormatted = formatCurrency(totalSpending);
   const averageMonthlyFormatted = formatCurrency(averageMonthly);
   const topCategoryDisplay = topCategory
-    ? `${topCategory.category} (${formatCurrency(topCategory.amount)})`
+    ? `${formatCategoryDisplayName(topCategory.category)} (${formatCurrency(topCategory.amount)})`
     : 'No data';
 
   return (

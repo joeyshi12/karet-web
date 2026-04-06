@@ -1,50 +1,26 @@
+<p align="center">
+  <img src="./docs/banner.svg" alt="Karet -- personal finance dashboard" width="800" />
+</p>
+
 # karet-web
 
-A personal finance dashboard that visualizes spending data from Parquet files stored in S3.
+A self-hostable personal finance dashboard. Visualizes spending data from Parquet files in S3.
 
-## Features
-
-- Category breakdown pie chart
-- Monthly spending trends
-- Top merchants analysis
-- Account and date range filtering
-
-## Prerequisites
-
-- Node.js 18+
-- AWS credentials configured (via environment variables or AWS CLI)
-- S3 bucket containing transaction data in Parquet format
-
-## Environment Variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `S3_BUCKET` | No | `karet-data` | S3 bucket name containing transaction data |
-| `S3_FORCE_PATH_STYLE` | No | `false` | Forces client to use URL path to access buckets rather than subdomains |
-| `S3_PREFIX` | No | `clean/` | Prefix path to Parquet files in the bucket |
-| `AWS_REGION` | No | `us-east-1` | AWS region for S3 access |
-
-## Getting Started
+## Quick start
 
 ```bash
-# Install dependencies
 npm install
-
-# Set environment variables
-export S3_BUCKET=your-bucket-name
-
-# Run development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the dashboard.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Build & Deploy
+## Docker Compose
+
+Runs RustFS (S3-compatible storage), [karet-worker](https://github.com/joeyshi12/karet-worker), and the dashboard together.
 
 ```bash
-# Build for production
-npm run build
-
-# Start production server
-npm start
+docker compose up -d
 ```
+
+All configuration is in [`docker-compose.yaml`](docker-compose.yaml).

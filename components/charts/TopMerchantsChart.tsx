@@ -53,7 +53,7 @@ export function TopMerchantsChart({ transactions, limit = 5 }: TopMerchantsChart
     if (elements.length > 0) {
       const index = elements[0].index;
       const merchant = labels[index];
-      router.push(`/transactions?merchant=${encodeURIComponent(merchant)}`);
+      router.push(`/transactions?merchant=${encodeURIComponent(merchant)}&spending=true`);
     }
   };
 

@@ -5,6 +5,8 @@ import React, { useState, useCallback, useMemo } from 'react';
 interface DateRangeFilterProps {
   startDate: Date | null;
   endDate: Date | null;
+  defaultStartDate?: Date | null;
+  defaultEndDate?: Date | null;
   onDateRangeChange: (start: Date | null, end: Date | null) => void;
 }
 
@@ -22,6 +24,8 @@ const inputBase = "h-[34px] px-2 text-[0.8125rem] border-2 border-carrot-orange 
 export function DateRangeFilter({
   startDate,
   endDate,
+  defaultStartDate,
+  defaultEndDate,
   onDateRangeChange,
 }: DateRangeFilterProps) {
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -139,9 +143,20 @@ export function DateRangeFilter({
     return -1;
   };
 
-  const handleClearDates = () => {
+  const hasDefaults = defaultStartDate != null || defaultEndDate != null;
+
+  const isAtDefault =
+    hasDefaults &&
+    formatDateForInput(startDate) === formatDateForInput(defaultStartDate ?? null) &&
+    formatDateForInput(endDate) === formatDateForInput(defaultEndDate ?? null);
+
+  const handleResetOrClear = () => {
     setValidationError(null);
-    onDateRangeChange(null, null);
+    if (hasDefaults) {
+      onDateRangeChange(defaultStartDate ?? null, defaultEndDate ?? null);
+    } else {
+      onDateRangeChange(null, null);
+    }
   };
 
   return (
@@ -191,14 +206,14 @@ export function DateRangeFilter({
           aria-describedby={validationError ? 'date-error' : undefined}
         />
 
-        {(startDate || endDate) && (
+        {(startDate || endDate) && !isAtDefault && (
           <button
             type="button"
             className="h-[34px] px-2.5 text-xs font-semibold border-2 border-carrot-orange rounded-md bg-transparent text-carrot-orange cursor-pointer transition-all duration-200 hover:bg-carrot-orange hover:text-white focus:outline-none focus:ring-3 focus:ring-carrot-orange/20 max-sm:w-full max-sm:h-9"
-            onClick={handleClearDates}
-            aria-label="Clear date range"
+            onClick={handleResetOrClear}
+            aria-label={hasDefaults ? 'Reset date range' : 'Clear date range'}
           >
-            Clear
+            {hasDefaults ? 'Reset' : 'Clear'}
           </button>
         )}
       </div>

@@ -51,7 +51,7 @@ export function MonthlyTrendChart({ transactions }: MonthlyTrendChartProps) {
     if (elements.length > 0) {
       const index = elements[0].index;
       const monthKey = displayMonths[index]; // YYYY-MM format
-      router.push(`/transactions?month=${monthKey}`);
+      router.push(`/transactions?month=${monthKey}&spending=true`);
     }
   };
 

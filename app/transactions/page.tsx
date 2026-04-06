@@ -1,18 +1,24 @@
 'use client';
 
-import { Suspense, useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense, useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Transaction } from '@/lib/types/transaction';
 import {
   filterByAccount,
   filterByDateRange,
+  filterSpendingOnly,
   formatCurrency,
   fuzzySearchTransactions,
   paginateTransactions,
   calculateTotalPages,
   calculateDisplayRange,
+  transactionMatchesCategoryFilter,
 } from '@/lib/utils/transaction-utils';
+import {
+  formatCategoryDisplayName,
+  isUncategorizedCategory,
+} from '@/lib/utils/category-display';
 
 interface TransactionsResponse {
   transactions: Array<{
@@ -29,8 +35,42 @@ interface TransactionsResponse {
 type SortField = 'date' | 'amount' | 'merchant' | 'category';
 type SortDirection = 'asc' | 'desc';
 
+function SummaryStats({ transactions }: { transactions: Transaction[] }) {
+  const stats = useMemo(() => {
+    const spending = transactions.filter((t) => t.amount > 0);
+    const credits = transactions.filter((t) => t.amount < 0);
+    const totalSpent = spending.reduce((s, t) => s + t.amount, 0);
+    const totalCredits = credits.reduce((s, t) => s + t.amount, 0);
+    const largest = transactions.reduce(
+      (max, t) => (t.amount > max ? t.amount : max),
+      -Infinity,
+    );
+    return { totalSpent, totalCredits, largest: largest === -Infinity ? 0 : largest };
+  }, [transactions]);
+
+  return (
+    <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="bg-white rounded-lg p-3 shadow-sm">
+        <div className="text-xs text-gray-500 mb-1">Total Spent</div>
+        <div className="text-sm font-semibold text-gray-900">{formatCurrency(stats.totalSpent)}</div>
+      </div>
+      {stats.totalCredits < 0 && (
+        <div className="bg-white rounded-lg p-3 shadow-sm">
+          <div className="text-xs text-gray-500 mb-1">Credits / Refunds</div>
+          <div className="text-sm font-semibold text-green-600">{formatCurrency(stats.totalCredits)}</div>
+        </div>
+      )}
+      <div className="bg-white rounded-lg p-3 shadow-sm">
+        <div className="text-xs text-gray-500 mb-1">Largest</div>
+        <div className="text-sm font-semibold text-gray-900">{formatCurrency(stats.largest)}</div>
+      </div>
+    </div>
+  );
+}
+
 function TransactionsContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +80,18 @@ function TransactionsContent() {
   const merchantFilter = searchParams.get('merchant');
   const monthFilter = searchParams.get('month');
   const accountFilter = searchParams.get('account');
+  const spendingOnly = searchParams.get('spending') === 'true';
+
+  const setFilterParam = useCallback((param: string, value: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(param, value);
+    } else {
+      params.delete(param);
+    }
+    const qs = params.toString();
+    router.push(`/transactions${qs ? `?${qs}` : ''}`);
+  }, [searchParams, router]);
 
   // Local state for sorting
   const [sortField, setSortField] = useState<SortField>('date');
@@ -62,7 +114,7 @@ function TransactionsContent() {
   // Reset to page 1 when filters/search change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, categoryFilter, merchantFilter, monthFilter, accountFilter]);
+  }, [debouncedSearch, categoryFilter, merchantFilter, monthFilter, accountFilter, spendingOnly]);
 
   useEffect(() => {
     async function fetchTransactions() {
@@ -89,9 +141,14 @@ function TransactionsContent() {
 
   const filteredTransactions = useMemo(() => {
     let result = transactions;
-    // Apply URL filters first
+    if (spendingOnly) result = filterSpendingOnly(result);
+    // Apply URL filters
     if (accountFilter) result = filterByAccount(result, accountFilter);
-    if (categoryFilter) result = result.filter((t) => t.category === categoryFilter);
+    if (categoryFilter) {
+      result = result.filter((t) =>
+        transactionMatchesCategoryFilter(t, categoryFilter)
+      );
+    }
     if (merchantFilter) result = result.filter((t) => (t.merchant ?? t.description) === merchantFilter);
     if (monthFilter) {
       const [year, month] = monthFilter.split('-').map(Number);
@@ -113,7 +170,7 @@ function TransactionsContent() {
       return sortDirection === 'asc' ? comparison : -comparison;
     });
     return result;
-  }, [transactions, accountFilter, categoryFilter, merchantFilter, monthFilter, debouncedSearch, sortField, sortDirection]);
+  }, [transactions, spendingOnly, accountFilter, categoryFilter, merchantFilter, monthFilter, debouncedSearch, sortField, sortDirection]);
 
   // Pagination calculations
   const totalPages = calculateTotalPages(filteredTransactions.length, pageSize);
@@ -135,11 +192,43 @@ function TransactionsContent() {
   };
 
   const activeFilters = [
-    categoryFilter && `Category: ${categoryFilter}`,
-    merchantFilter && `Merchant: ${merchantFilter}`,
-    monthFilter && `Month: ${monthFilter}`,
-    accountFilter && `Account: ${accountFilter}`,
-  ].filter(Boolean);
+    spendingOnly && { param: 'spending', label: 'Payments excluded' },
+    categoryFilter && { param: 'category', label: `Category: ${formatCategoryDisplayName(categoryFilter)}` },
+    merchantFilter && { param: 'merchant', label: `Merchant: ${merchantFilter}` },
+    monthFilter && { param: 'month', label: `Month: ${monthFilter}` },
+    accountFilter && { param: 'account', label: `Account: ${accountFilter}` },
+  ].filter((f): f is { param: string; label: string } => Boolean(f));
+
+  const removeFilterHref = (param: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete(param);
+    const qs = params.toString();
+    return `/transactions${qs ? `?${qs}` : ''}`;
+  };
+
+  const filterOptions = useMemo(() => {
+    const categories = Array.from(new Set(
+      transactions.map((t) => t.category ?? 'Uncategorized')
+    )).sort((a, b) => a.localeCompare(b));
+
+    const merchants = Array.from(new Set(
+      transactions.map((t) => t.merchant).filter((m): m is string => m != null)
+    )).sort((a, b) => a.localeCompare(b));
+
+    const accounts = Array.from(new Set(
+      transactions.map((t) => t.account_id)
+    )).sort((a, b) => a.localeCompare(b));
+
+    const months = Array.from(new Set(
+      transactions.map((t) => {
+        const y = t.date.getFullYear();
+        const m = String(t.date.getMonth() + 1).padStart(2, '0');
+        return `${y}-${m}`;
+      })
+    )).sort().reverse();
+
+    return { categories, merchants, accounts, months };
+  }, [transactions]);
 
   if (isLoading) {
     return (
@@ -160,19 +249,91 @@ function TransactionsContent() {
 
   return (
     <>
-      {activeFilters.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-gray-500">Filters:</span>
-          {activeFilters.map((filter, i) => (
-            <span key={i} className="px-2 py-1 bg-carrot-orange/10 text-carrot-orange text-sm rounded">
-              {filter}
-            </span>
-          ))}
-          <Link href="/transactions" className="text-sm text-gray-500 hover:text-carrot-orange ml-2">
-            Clear all
-          </Link>
+      {/* Filter Bar */}
+      <div className="mb-4 bg-white rounded-lg shadow-sm px-4 py-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <select
+            value={categoryFilter ?? ''}
+            onChange={(e) => setFilterParam('category', e.target.value || null)}
+            className="px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-carrot-orange/50 focus:border-carrot-orange bg-white"
+          >
+            <option value="">All Categories</option>
+            {filterOptions.categories.map((c) => (
+              <option key={c} value={c}>{formatCategoryDisplayName(c)}</option>
+            ))}
+          </select>
+
+          <select
+            value={merchantFilter ?? ''}
+            onChange={(e) => setFilterParam('merchant', e.target.value || null)}
+            className="px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-carrot-orange/50 focus:border-carrot-orange bg-white"
+          >
+            <option value="">All Merchants</option>
+            {filterOptions.merchants.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+
+          <select
+            value={accountFilter ?? ''}
+            onChange={(e) => setFilterParam('account', e.target.value || null)}
+            className="px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-carrot-orange/50 focus:border-carrot-orange bg-white"
+          >
+            <option value="">All Accounts</option>
+            {filterOptions.accounts.map((a) => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+          </select>
+
+          <select
+            value={monthFilter ?? ''}
+            onChange={(e) => setFilterParam('month', e.target.value || null)}
+            className="px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-carrot-orange/50 focus:border-carrot-orange bg-white"
+          >
+            <option value="">All Months</option>
+            {filterOptions.months.map((m) => {
+              const [y, mo] = m.split('-');
+              const label = new Date(parseInt(y), parseInt(mo) - 1, 1)
+                .toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              return <option key={m} value={m}>{label}</option>;
+            })}
+          </select>
+
+          <label className="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={spendingOnly}
+              onChange={(e) => setFilterParam('spending', e.target.checked ? 'true' : null)}
+              className="rounded border-gray-300 text-carrot-orange focus:ring-carrot-orange/50"
+            />
+            Exclude payments
+          </label>
         </div>
-      )}
+
+        {activeFilters.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-2 items-center">
+            {activeFilters.map((filter) => (
+              <span key={filter.param} className="inline-flex items-center gap-1 px-2 py-0.5 bg-carrot-orange/10 text-carrot-orange text-xs rounded">
+                {filter.label}
+                <Link
+                  href={removeFilterHref(filter.param)}
+                  className="ml-0.5 hover:text-dark-orange"
+                  aria-label={`Remove ${filter.label} filter`}
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </Link>
+              </span>
+            ))}
+            {activeFilters.length > 1 && (
+              <Link href="/transactions" className="text-xs text-gray-500 hover:text-carrot-orange ml-1">
+                Clear all
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Search Bar */}
       <div className="mb-4 relative">
@@ -202,6 +363,10 @@ function TransactionsContent() {
           </button>
         )}
       </div>
+
+      {filteredTransactions.length > 0 && (
+        <SummaryStats transactions={filteredTransactions} />
+      )}
 
       <div className="mb-3 text-sm text-gray-500">
         {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
@@ -236,7 +401,13 @@ function TransactionsContent() {
                   </td>
                   <td className="px-4 py-3 max-w-[200px] truncate" title={t.description}>{t.description}</td>
                   <td className="px-4 py-3">{t.merchant ?? <span className="text-gray-400">—</span>}</td>
-                  <td className="px-4 py-3">{t.category ?? <span className="text-gray-400">Uncategorized</span>}</td>
+                  <td className="px-4 py-3">
+                    {isUncategorizedCategory(t.category) ? (
+                      <span className="text-gray-400">Uncategorized</span>
+                    ) : (
+                      formatCategoryDisplayName(t.category)
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-gray-500">{t.account_id}</td>
                   <td className={`px-4 py-3 text-right font-medium ${t.amount < 0 ? 'text-green-600' : 'text-gray-900'}`}>
                     {formatCurrency(t.amount)}
