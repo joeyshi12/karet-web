@@ -1,10 +1,16 @@
 <p align="center">
-  <img src="./docs/banner.svg" alt="Karet -- personal finance dashboard" width="800" />
+  <img src="/docs/banner.svg" alt="Karet - personal finance dashboard" width="800" />
 </p>
 
 # karet-web
 
 A self-hostable personal finance dashboard that visualizes spending data from Parquet files in S3.
+
+## Architecture
+
+<p align="center">
+  <img src="/docs/architecture.webp" alt="Architecture" width="800" />
+</p>
 
 ## Quick start
 
