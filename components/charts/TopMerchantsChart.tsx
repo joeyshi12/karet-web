@@ -16,6 +16,7 @@ import {
 import { Bar } from 'react-chartjs-2';
 import { Transaction } from '@/lib/types/transaction';
 import { aggregateByMerchant } from '@/lib/utils/transaction-utils';
+import { formatDisplayName } from '@/lib/utils/category-display';
 import { THEME_COLORS } from '@/lib/config/theme';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -42,7 +43,8 @@ export function TopMerchantsChart({ transactions, limit = 5 }: TopMerchantsChart
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit);
 
-  const labels = sortedMerchants.map(([description]) => description);
+  const merchantKeys = sortedMerchants.map(([key]) => key);
+  const labels = merchantKeys.map(formatDisplayName);
   const amounts = sortedMerchants.map(([, amount]) => amount);
 
   const backgroundColors = labels.map(
@@ -52,7 +54,7 @@ export function TopMerchantsChart({ transactions, limit = 5 }: TopMerchantsChart
   const handleClick = (_event: ChartEvent, elements: ActiveElement[]) => {
     if (elements.length > 0) {
       const index = elements[0].index;
-      const merchant = labels[index];
+      const merchant = merchantKeys[index];
       router.push(`/transactions?merchant=${encodeURIComponent(merchant)}&spending=true`);
     }
   };

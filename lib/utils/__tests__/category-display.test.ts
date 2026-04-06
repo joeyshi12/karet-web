@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  formatDisplayName,
   formatCategoryDisplayName,
   isUncategorizedCategory,
 } from '../category-display';
@@ -15,6 +16,35 @@ describe('isUncategorizedCategory', () => {
 
   it('is false for real categories', () => {
     expect(isUncategorizedCategory('FOOD')).toBe(false);
+  });
+});
+
+describe('formatDisplayName', () => {
+  it('title-cases SNAKE_CASE keys', () => {
+    expect(formatDisplayName('FOOD')).toBe('Food');
+    expect(formatDisplayName('PERSONAL_CARE')).toBe('Personal Care');
+    expect(formatDisplayName('TRANSPORTATION')).toBe('Transportation');
+  });
+
+  it('applies overrides for awkward tokens', () => {
+    expect(formatDisplayName('PAYMENT')).toBe('Payments');
+    expect(formatDisplayName('T_AND_T')).toBe('T&T');
+    expect(formatDisplayName('A_AND_W')).toBe('A&W');
+  });
+
+  it('handles already human-readable labels', () => {
+    expect(formatDisplayName('Groceries')).toBe('Groceries');
+    expect(formatDisplayName('Dining')).toBe('Dining');
+  });
+
+  it('returns empty string for blank input', () => {
+    expect(formatDisplayName('')).toBe('');
+    expect(formatDisplayName('   ')).toBe('');
+  });
+
+  it('formats merchant-style UPPER keys', () => {
+    expect(formatDisplayName('STARBUCKS')).toBe('Starbucks');
+    expect(formatDisplayName('CHIPOTLE')).toBe('Chipotle');
   });
 });
 

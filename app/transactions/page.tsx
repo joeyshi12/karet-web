@@ -16,6 +16,7 @@ import {
   transactionMatchesCategoryFilter,
 } from '@/lib/utils/transaction-utils';
 import {
+  formatDisplayName,
   formatCategoryDisplayName,
   isUncategorizedCategory,
 } from '@/lib/utils/category-display';
@@ -194,7 +195,7 @@ function TransactionsContent() {
   const activeFilters = [
     spendingOnly && { param: 'spending', label: 'Payments excluded' },
     categoryFilter && { param: 'category', label: `Category: ${formatCategoryDisplayName(categoryFilter)}` },
-    merchantFilter && { param: 'merchant', label: `Merchant: ${merchantFilter}` },
+    merchantFilter && { param: 'merchant', label: `Merchant: ${formatDisplayName(merchantFilter)}` },
     monthFilter && { param: 'month', label: `Month: ${monthFilter}` },
     accountFilter && { param: 'account', label: `Account: ${accountFilter}` },
   ].filter((f): f is { param: string; label: string } => Boolean(f));
@@ -270,7 +271,7 @@ function TransactionsContent() {
           >
             <option value="">All Merchants</option>
             {filterOptions.merchants.map((m) => (
-              <option key={m} value={m}>{m}</option>
+              <option key={m} value={m}>{formatDisplayName(m)}</option>
             ))}
           </select>
 
@@ -400,7 +401,7 @@ function TransactionsContent() {
                     {t.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
                   <td className="px-4 py-3 max-w-[200px] truncate" title={t.description}>{t.description}</td>
-                  <td className="px-4 py-3">{t.merchant ?? <span className="text-gray-400">—</span>}</td>
+                  <td className="px-4 py-3">{t.merchant ? formatDisplayName(t.merchant) : <span className="text-gray-400">—</span>}</td>
                   <td className="px-4 py-3">
                     {isUncategorizedCategory(t.category) ? (
                       <span className="text-gray-400">Uncategorized</span>
