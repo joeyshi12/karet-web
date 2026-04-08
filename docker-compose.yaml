@@ -32,6 +32,7 @@ services:
       AWS_SECRET_ACCESS_KEY: rustfsadmin
       AWS_ENDPOINT_URL: http://rustfs:9000
       AWS_REGION: us-east-1
+      POLARS_MAX_THREADS: "2"
     volumes:
       # Create the file on the host first: touch karet.yaml
       - ./karet.yaml:/app/karet.yaml
